@@ -1,0 +1,15 @@
+/__pycache__
+**/__pycache__/
+*.py[cod]
+*$py.class
+
+# Local environments and tooling
+venv/
+.venv/
+.env
+.env.*
+.vscode/
+
+# Local/generated data
+data/*.csv
+*.log

@@ -1,0 +1,14 @@
+{
+  "model": "RandomForest",
+  "test_accuracy": 1.0,
+  "cv_accuracy": {
+    "RandomForest": 1.0,
+    "SVM (RBF)": 1.0,
+    "MLP": 1.0
+  },
+  "n_samples": 800,
+  "n_classes": 4,
+  "test_size": 0.2,
+  "seed": 42,
+  "augment_copies": 3
+}

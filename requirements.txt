@@ -1,0 +1,11 @@
+# Tested with Python 3.10 - 3.12 (MediaPipe 0.10.14 does not support Python 3.13 yet)
+numpy==1.26.4
+opencv-contrib-python==4.10.0.84
+mediapipe==0.10.14
+scikit-learn==1.5.2
+pandas==2.2.3
+matplotlib==3.9.2
+joblib==1.4.2
+streamlit==1.41.1
+pyttsx3==2.98
+flask==3.0.3

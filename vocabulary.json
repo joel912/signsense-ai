@@ -1,0 +1,5 @@
+{
+  "alphabets": ["A", "B", "C", "D", "E"],
+  "numbers": ["1", "2", "3", "4", "5"],
+  "words": ["Hello", "Yes", "No", "Thank You", "Help"]
+}

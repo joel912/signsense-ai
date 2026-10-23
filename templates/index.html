@@ -1,0 +1,1488 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SignSense AI — Real-Time Indian Sign Language Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-gradient: linear-gradient(135deg, #6d28d9 0%, #8b5cf6 30%, #f97316 75%, #ea580c 100%);
+  --canvas-bg: #fffaf7;
+  --surface-card: #ffffff;
+  --surface-subtle: #f8f6f0;
+  --surface-dark: #0f1118;
+  
+  --text-main: #141416;
+  --text-muted: #62626e;
+  --text-subtle: #92929e;
+  
+  --border-light: rgba(0, 0, 0, 0.08);
+  --border-card: rgba(0, 0, 0, 0.06);
+
+  --brand-purple: #7c3aed;
+  --brand-orange: #ea580c;
+  --brand-pink: #ec4899;
+  --btn-gradient: linear-gradient(135deg, #7c3aed 0%, #ec4899 55%, #ea580c 100%);
+  
+  --status-green: #10b981;
+  --status-red: #ef4444;
+
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  background: var(--bg-gradient);
+  background-attachment: fixed;
+  font-family: var(--font-sans);
+  color: var(--text-main);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Full Viewport App Container */
+.full-viewport-app {
+  width: 100%;
+  min-height: 100vh;
+  background: var(--canvas-bg);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Top Navigation Bar */
+header.top-nav {
+  width: 100%;
+  padding: 26px 4vw 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  background: var(--canvas-bg);
+  border-bottom: 1px solid var(--border-light);
+  flex-wrap: wrap;
+}
+
+.brand-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.brand-logo-mark {
+  width: 54px;
+  height: 54px;
+  background: var(--surface-dark);
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+}
+
+.brand-logo-mark svg {
+  width: 32px;
+  height: 32px;
+}
+
+.brand-text-block h1 {
+  font-size: 1.55rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-version-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(124, 58, 237, 0.1);
+  color: var(--brand-purple);
+  text-transform: uppercase;
+}
+
+.brand-text-block p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+/* Navigation Mode Selector */
+.nav-pills {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.04);
+  padding: 6px;
+  border-radius: 999px;
+  border: 1px solid var(--border-light);
+}
+
+.nav-pill-btn {
+  background: transparent;
+  border: 0;
+  font-family: inherit;
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: 11px 26px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nav-pill-btn:hover { color: var(--text-main); }
+
+.nav-pill-btn.active {
+  background: #ffffff;
+  color: var(--text-main);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+.nav-status-indicators {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.telemetry-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  padding: 11px 22px;
+  border-radius: 999px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-main);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.live-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--status-green);
+  box-shadow: 0 0 12px var(--status-green);
+}
+
+/* Hero Canvas (Takes Full Vertical Viewport on Large Displays) */
+.hero-canvas {
+  width: 100%;
+  flex: 1;
+  min-height: calc(100vh - 120px);
+  padding: 40px 4vw 60px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(620px, 1.45fr);
+  gap: 5vw;
+  align-items: center;
+}
+
+@media (max-width: 1240px) {
+  .hero-canvas {
+    grid-template-columns: 1fr;
+    min-height: auto;
+    padding: 36px 24px;
+    gap: 40px;
+  }
+}
+
+/* Left Hero Section */
+.hero-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.hero-info h2 {
+  font-size: clamp(3.4rem, 5.2vw, 5.8rem);
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  color: var(--text-main);
+  margin-bottom: 26px;
+}
+
+.text-gradient {
+  background: var(--btn-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  display: inline-block;
+}
+
+.hero-description {
+  font-size: 1.25rem;
+  line-height: 1.65;
+  color: var(--text-muted);
+  max-width: 640px;
+  margin-bottom: 40px;
+}
+
+.cta-group {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-bottom: 34px;
+}
+
+button.btn-primary-gradient {
+  background: var(--btn-gradient);
+  border: 0;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 1.15rem;
+  font-weight: 700;
+  padding: 18px 40px;
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 12px 34px rgba(236, 72, 153, 0.4);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+button.btn-primary-gradient:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 40px rgba(236, 72, 153, 0.5);
+}
+
+button.btn-primary-gradient.stop {
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+  box-shadow: 0 12px 34px rgba(239, 68, 68, 0.4);
+}
+
+.circle-icon-arrow {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+}
+
+button.btn-pill-subtle {
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 1.15rem;
+  font-weight: 600;
+  padding: 18px 36px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+  transition: background 0.2s, border-color 0.2s;
+}
+
+button.btn-pill-subtle:hover {
+  background: #faf8f5;
+  border-color: #d4d4d8;
+}
+
+.spec-pills {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+
+.spec-pills span {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.spec-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #a1a1aa;
+}
+
+/* Large Docked Controls */
+.docked-controls {
+  margin-top: 40px;
+  padding: 20px 30px;
+  background: #ffffff;
+  border-radius: 24px;
+  border: 1px solid var(--border-light);
+  display: inline-flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.04);
+}
+
+.control-node {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 140px;
+  height: 8px;
+  background: #e4e4e7;
+  border-radius: 4px;
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--brand-purple);
+  cursor: pointer;
+}
+
+select.select-styled {
+  background: var(--surface-subtle);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 8px 16px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--text-main);
+  outline: none;
+}
+
+/* Right Hero: Massive Camera Stage */
+.product-showcase {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.monitor-device-frame {
+  width: 100%;
+  max-width: 960px; /* ENLARGED: Increased up to 960px */
+  background: var(--surface-dark);
+  border-radius: 42px;
+  padding: 28px;
+  box-shadow: 0 36px 110px rgba(0, 0, 0, 0.35);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  position: relative;
+}
+
+.monitor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px 18px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #e4e4e7;
+}
+
+.recording-indicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #ec4899;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.rec-pulse {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ec4899;
+  box-shadow: 0 0 12px #ec4899;
+}
+
+/* Video Stage */
+.stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 32px;
+  overflow: hidden;
+  background: #06070a;
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.3s ease;
+}
+
+.stage.ok {
+  border-color: #38bdf8;
+  box-shadow: 0 0 40px rgba(56, 189, 248, 0.35);
+}
+
+.stage.good {
+  border-color: var(--status-green);
+  box-shadow: 0 0 45px rgba(16, 185, 129, 0.45);
+}
+
+.stage.bad {
+  border-color: var(--status-red);
+  box-shadow: 0 0 45px rgba(239, 68, 68, 0.45);
+}
+
+.stage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: none;
+}
+
+.camera-offline-view {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: #a1a1aa;
+  text-align: center;
+  padding: 32px;
+}
+
+.offline-glyph {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  display: grid;
+  place-items: center;
+  font-size: 2.2rem;
+}
+
+.hand-status-pill {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  color: #ffffff;
+  display: none;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  z-index: 5;
+}
+
+.hand-status-pill .indicator-pip {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--status-red);
+}
+
+.hand-status-pill.on .indicator-pip {
+  background: var(--status-green);
+  box-shadow: 0 0 10px var(--status-green);
+}
+
+/* Scaled-Up Floating Detection Card */
+.floating-detection-card {
+  position: absolute;
+  bottom: -38px;
+  left: -32px;
+  width: 410px; /* ENLARGED: Increased from 320px to 410px */
+  background: #ffffff;
+  border-radius: 32px;
+  padding: 26px 30px;
+  box-shadow: 0 28px 60px rgba(0, 0, 0, 0.22);
+  border: 1px solid var(--border-light);
+  z-index: 10;
+  animation: floatSubtle 4s ease-in-out infinite alternate;
+}
+
+@keyframes floatSubtle {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-10px); }
+}
+
+@media (max-width: 768px) {
+  .floating-detection-card {
+    position: static;
+    width: 100%;
+    margin-top: 24px;
+    animation: none;
+  }
+}
+
+.card-header-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.mini-avatar-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--btn-gradient);
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  color: #fff;
+}
+
+.card-header-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.card-tag {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: rgba(124, 58, 237, 0.1);
+  color: var(--brand-purple);
+  text-transform: uppercase;
+}
+
+.sign-split-view {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sign-text-hero {
+  font-size: 4.4rem; /* ENLARGED: Increased sign text size */
+  font-weight: 800;
+  line-height: 1;
+  color: var(--text-main);
+  letter-spacing: -0.04em;
+}
+
+.sign-text-hero.dim { color: #d4d4d8; }
+
+/* Large Gauge */
+.gauge-dial {
+  position: relative;
+  width: 82px;
+  height: 82px;
+}
+
+.gauge-dial svg { transform: rotate(-90deg); }
+
+.gauge-percentage-label {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 1.05rem;
+  font-weight: 800;
+  font-family: var(--font-mono);
+}
+
+.card-status-line {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-status-line strong { color: var(--text-main); }
+
+/* Practice & Quiz Display inside Card */
+.quiz-panel-layout { text-align: center; }
+
+.quiz-timer-line {
+  height: 8px;
+  border-radius: 99px;
+  background: #f4f4f5;
+  margin: 14px 0 10px;
+  overflow: hidden;
+}
+
+.quiz-timer-fill {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background: var(--btn-gradient);
+  transition: width 0.1s linear;
+}
+
+.quiz-feedback-pill {
+  padding: 11px 18px;
+  border-radius: 14px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  margin: 12px 0;
+}
+
+.quiz-feedback-pill.good { background: #dcfce7; color: #15803d; }
+.quiz-feedback-pill.bad { background: #fee2e2; color: #b91c1c; }
+.quiz-feedback-pill.idle { background: #f4f4f5; color: var(--text-muted); }
+
+.quiz-score-grid {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 14px;
+  border-top: 1px solid #f4f4f5;
+  padding-top: 14px;
+}
+
+.quiz-score-grid div { font-size: 0.8rem; color: var(--text-muted); }
+.quiz-score-grid b { display: block; font-size: 1.25rem; color: var(--text-main); font-family: var(--font-mono); }
+
+/* Satellite Badges */
+.satellite-chip {
+  position: absolute;
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 14px 22px;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.09);
+  border: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-main);
+  z-index: 4;
+}
+
+.satellite-chip.top-right {
+  top: -18px;
+  right: -36px;
+}
+
+.satellite-chip.bottom-right {
+  bottom: 28px;
+  right: -44px;
+}
+
+@media (max-width: 1100px) {
+  .satellite-chip { display: none; }
+}
+
+/* ISL Guide Hub (Hidden By Default) */
+.information-hub {
+  width: 100%;
+  padding: 72px 4vw 84px;
+  background: var(--surface-subtle);
+  border-top: 1px solid var(--border-light);
+  animation: fadeInDown 0.35s ease-out;
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hub-top-bar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 48px;
+  flex-wrap: wrap;
+}
+
+.hub-header { max-width: 900px; }
+
+.hub-kicker {
+  font-size: 0.88rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--brand-purple);
+  margin-bottom: 10px;
+}
+
+.hub-header h3 {
+  font-size: clamp(2.4rem, 3.6vw, 3.2rem);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+}
+
+button.btn-close-hub {
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 10px 24px;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+}
+
+button.btn-close-hub:hover {
+  background: var(--surface-dark);
+  color: #ffffff;
+}
+
+.guide-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+  margin-bottom: 64px;
+}
+
+@media (max-width: 960px) {
+  .guide-cards-grid { grid-template-columns: 1fr; }
+}
+
+.guide-feature-card {
+  background: #ffffff;
+  border-radius: 28px;
+  padding: 36px 32px;
+  border: 1px solid var(--border-card);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.03);
+}
+
+.guide-icon-badge {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: rgba(124, 58, 237, 0.1);
+  color: var(--brand-purple);
+  display: grid;
+  place-items: center;
+  font-size: 28px;
+  margin-bottom: 24px;
+}
+
+.guide-feature-card h4 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.guide-feature-card p {
+  font-size: 1.05rem;
+  line-height: 1.65;
+  color: var(--text-muted);
+}
+
+/* Detailed Vocabulary Explorer */
+.vocab-section-title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.vocab-matrix-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+  margin: 28px 0 48px;
+}
+
+.vocab-card {
+  background: #ffffff;
+  border-radius: 22px;
+  padding: 22px 24px;
+  border: 1px solid var(--border-card);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.vocab-card-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.vocab-symbol {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.vocab-type {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: var(--surface-subtle);
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.vocab-desc {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* Stream Log */
+.stream-log-container {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 28px 32px;
+  border: 1px solid var(--border-card);
+}
+
+.stream-log-header {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: var(--text-main);
+}
+
+.stream-tags-list {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.stream-pill {
+  background: rgba(124, 58, 237, 0.08);
+  border: 1px solid rgba(124, 58, 237, 0.2);
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--brand-purple);
+}
+
+/* Footer */
+footer.global-footer {
+  width: 100%;
+  padding: 36px 4vw;
+  background: #ffffff;
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+  gap: 18px;
+}
+
+/* Setup Overlay Card (If Model Needs Training) */
+.setup-box {
+  display: none;
+  background: #ffffff;
+  border-radius: 28px;
+  padding: 36px;
+  margin: 28px 4vw;
+  border: 2px dashed #f59e0b;
+}
+
+.setup-code-view {
+  background: #18181b;
+  color: #38bdf8;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  padding: 16px 22px;
+  border-radius: 14px;
+  margin: 16px 0 20px;
+}
+
+/* Toast */
+#toast {
+  position: fixed;
+  bottom: 34px;
+  left: 50%;
+  transform: translateX(-50%) translateY(70px);
+  background: #18181b;
+  color: #ffffff;
+  padding: 16px 32px;
+  border-radius: 999px;
+  font-size: 1rem;
+  font-weight: 600;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 1000;
+}
+
+#toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="full-viewport-app">
+  <!-- Navigation Header (Spanning Full 100% Width) -->
+  <header class="top-nav">
+    <div class="brand-wrapper">
+      <div class="brand-logo-mark" title="SignSense Geometric Emblem">
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="16" cy="16" r="14" stroke="url(#logoG)" stroke-width="2.5"/>
+          <path d="M11 19V14C11 12.8954 11.8954 12 13 12C14.1046 12 15 12.8954 15 14V19" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+          <path d="M15 13V11C15 9.89543 15.8954 9 17 9C18.1046 9 19 9.89543 19 11V18" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+          <path d="M19 13.5C19 12.6716 19.6716 12 20.5 12C21.3284 12 22 12.6716 22 13.5V19C22 21.7614 19.7614 24 17 24H15C12.7909 24 11 22.2091 11 20" stroke="url(#logoG)" stroke-width="2" stroke-linecap="round"/>
+          <defs>
+            <linearGradient id="logoG" x1="6" y1="6" x2="26" y2="26" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#8b5cf6"/>
+              <stop offset="1" stop-color="#f97316"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <div class="brand-text-block">
+        <h1>SignSense AI <span class="brand-version-badge">ISL Studio v1.0</span></h1>
+        <p>Indian Sign Language Recognition &amp; Feedback Platform</p>
+      </div>
+    </div>
+
+    <!-- Mode Selector Pills -->
+    <nav class="nav-pills" role="tablist">
+      <button class="nav-pill-btn active" id="tabLive" data-mode="live">Live Recognition</button>
+      <button class="nav-pill-btn" id="tabQuiz" data-mode="quiz">Practice &amp; Quiz</button>
+      <button class="nav-pill-btn" id="tabGuide">ISL Guide</button>
+      <button class="nav-pill-btn" id="tabVocab">Vocabulary</button>
+    </nav>
+
+    <!-- Telemetry Status Tag -->
+    <div class="nav-status-indicators">
+      <div class="telemetry-badge">
+        <span class="live-dot"></span>
+        <span>21-PT Spatial Engine</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Training Alert Setup Card (Appears if user has not run python train_model.py) -->
+  <div class="setup-box" id="setup">
+    <h3 style="font-size: 1.3rem; font-weight: 800; color: #b45309;">⚠️ Training Model Required</h3>
+    <p style="color: var(--text-muted); font-size: 1rem; margin-top: 8px;" id="setupMsg"></p>
+    <div class="setup-code-view">python collect_data.py
+python train_model.py</div>
+    <button class="btn-primary-gradient" id="btnReload" style="padding: 14px 30px; font-size: 1rem;">Reload Model</button>
+  </div>
+
+  <!-- Hero Workspace Grid (Expanded to Fill 100vh Viewport) -->
+  <main class="hero-canvas" id="main">
+    <!-- Left Hero Column -->
+    <div class="hero-info">
+      <h2>
+        <span class="text-gradient">AI recognition</span><br>
+        for real-time sign language
+      </h2>
+      <p class="hero-description">
+        SignSense AI recognizes single-hand Indian Sign Language poses in real time, provides instant spoken audio feedback, and offers interactive practice rounds — completely in memory.
+      </p>
+
+      <div class="cta-group">
+        <button class="btn-primary-gradient" id="btnCam">
+          <span class="circle-icon-arrow">→</span>
+          Start camera
+        </button>
+        <button class="btn-pill-subtle" onclick="document.getElementById(state && state.mode === 'live' ? 'tabQuiz' : 'tabLive').click()">
+          Switch mode
+        </button>
+      </div>
+
+      <div class="spec-pills">
+        <span><i class="spec-dot"></i> 21 Hand Landmarks</span>
+        <span><i class="spec-dot"></i> Instant Voice Synthesis</span>
+        <span><i class="spec-dot"></i> Edge RAM Processing</span>
+      </div>
+
+      <!-- Large Docked Adjustments Bar -->
+      <div class="docked-controls">
+        <label class="control-node">
+          <input type="checkbox" id="speak" checked style="accent-color: var(--brand-purple); width: 18px; height: 18px;">
+          Speak predictions
+        </label>
+
+        <div class="control-node">
+          <span>Confidence</span>
+          <input type="range" id="thr" min="30" max="95" step="5" value="70">
+          <span id="thrV" style="font-family: var(--font-mono); font-weight: 700; color: var(--brand-purple); min-width: 40px;">70%</span>
+        </div>
+
+        <div class="control-node">
+          <span>Camera</span>
+          <select id="camIdx" class="select-styled">
+            <option>0</option>
+            <option>1</option>
+            <option>2</option>
+            <option>3</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Hero Column (Enlarged Monitor Frame) -->
+    <div class="product-showcase">
+      <!-- Floating Satellite Badges -->
+      <div class="satellite-chip top-right">
+        <span style="color: #f59e0b;">★★★★★</span>
+        <span>21-PT Spatial Mesh</span>
+      </div>
+
+      <div class="satellite-chip bottom-right">
+        <span>Single-Handed ISL</span>
+        <span style="color: var(--brand-orange);">● Active</span>
+      </div>
+
+      <!-- Massive Central Monitor Device Frame -->
+      <div class="monitor-device-frame">
+        <div class="monitor-header">
+          <span>SignSense Live Stream</span>
+          <div class="recording-indicator">
+            <span class="rec-pulse"></span>
+            <span>Real-time</span>
+          </div>
+        </div>
+
+        <div class="stage" id="stage">
+          <img id="video" alt="Real-time SignSense Video Stream">
+          
+          <div class="camera-offline-view" id="ph">
+            <div class="offline-glyph">📹</div>
+            <p style="font-size: 1.15rem; font-weight: 700; color: #fff;">Camera is Offline</p>
+            <p style="font-size: 0.95rem; color: #71717a;">Press &ldquo;Start camera&rdquo; to begin recognition</p>
+          </div>
+
+          <div class="hand-status-pill" id="pill">
+            <span class="indicator-pip"></span>
+            <span id="pillTxt">No hand</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scaled-Up Floating Detection Card -->
+      <div class="floating-detection-card">
+        <!-- Live Recognition Content -->
+        <div id="livePanel">
+          <div class="card-header-bar">
+            <div class="mini-avatar-icon">🤟</div>
+            <div>
+              <div class="card-header-title">Recognized Sign</div>
+              <span class="card-tag hidden" id="liveCat"></span>
+            </div>
+          </div>
+
+          <div class="sign-split-view">
+            <div class="sign-text-hero dim" id="liveSign">–</div>
+
+            <!-- Large Circular Gauge -->
+            <div class="gauge-dial">
+              <svg width="82" height="82" viewBox="0 0 120 120">
+                <circle cx="60" cy="60" r="50" fill="none" stroke="#f4f4f5" stroke-width="12"/>
+                <circle id="ringArc" cx="60" cy="60" r="50" fill="none" stroke="url(#popoverGradient)" stroke-width="12"
+                  stroke-linecap="round" stroke-dasharray="314.15" stroke-dashoffset="314.15" style="transition: stroke-dashoffset 0.15s ease"/>
+                <defs>
+                  <linearGradient id="popoverGradient" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#7c3aed"/>
+                    <stop offset="100%" stop-color="#ea580c"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+              <div class="gauge-percentage-label" id="ringNum">–</div>
+            </div>
+          </div>
+
+          <div class="card-status-line">
+            Status: <strong id="liveStatus">Camera is off</strong>
+          </div>
+        </div>
+
+        <!-- Practice & Quiz Content -->
+        <div id="quizPanel" class="hidden">
+          <div class="card-header-bar">
+            <div class="mini-avatar-icon" style="background: var(--brand-orange);">🎯</div>
+            <div>
+              <div class="card-header-title">Show this sign:</div>
+              <span class="card-tag" style="color: var(--brand-orange); background: rgba(234, 88, 12, 0.1);">Challenge</span>
+            </div>
+          </div>
+
+          <div class="quiz-panel-layout">
+            <div class="sign-text-hero" id="qTarget" style="font-size: 3.2rem;">–</div>
+            <div class="quiz-timer-line"><i class="quiz-timer-fill" id="qBar"></i></div>
+            <div style="font-size: 0.88rem; color: var(--text-muted);" id="qTime">Hold hand steady</div>
+            
+            <div class="quiz-feedback-pill idle" id="qBanner">Start camera to begin</div>
+
+            <div class="quiz-score-grid">
+              <div>Correct <b id="qScore">0</b></div>
+              <div>Attempts <b id="qAtt">0</b></div>
+              <div>Accuracy <b id="qAcc">–</b></div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px;">
+              <span style="font-size: 0.88rem; color: var(--text-muted);">Camera sees: <strong id="qSees" style="color: var(--brand-purple);">–</strong></span>
+              <button id="btnReset" style="background: none; border: 0; font-size: 0.85rem; color: var(--text-subtle); cursor: pointer; text-decoration: underline;">Reset</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ISL Guide Hub (Hidden By Default, Opens on Click) -->
+  <section class="information-hub hidden" id="guideSection">
+    <div class="hub-top-bar">
+      <div class="hub-header">
+        <div class="hub-kicker">Knowledge Base</div>
+        <h3>Understanding Indian Sign Language (ISL) Recognition</h3>
+        <p style="font-size: 1.15rem; color: var(--text-muted); margin-top: 12px; line-height: 1.6;">
+          Indian Sign Language is a rich visual-spatial language with its own grammar and vocabulary. SignSense AI bridges human signing and computing through spatial geometry.
+        </p>
+      </div>
+      <button class="btn-close-hub" id="btnCloseHub">✕ Close Section</button>
+    </div>
+
+    <div class="guide-cards-grid">
+      <div class="guide-feature-card">
+        <div class="guide-icon-badge">📐</div>
+        <h4>21 Spatial Joint Topology</h4>
+        <p>Using MediaPipe Hands, we map 21 landmark vertices across your wrist, palm, and fingers into a normalized 63-dimensional coordinate feature vector invariant to hand size.</p>
+      </div>
+
+      <div class="guide-feature-card">
+        <div class="guide-icon-badge">⚡</div>
+        <h4>Held-Pose Classification</h4>
+        <p>Unlike dynamic sentences, our current engine is calibrated for single held poses (alphabets, digits, key vocabulary), evaluating joint orientation via a trained Random Forest/SVM pipeline.</p>
+      </div>
+
+      <div class="guide-feature-card">
+        <div class="guide-icon-badge">🛡️</div>
+        <h4>100% In-Memory Privacy</h4>
+        <p>No video or photos are ever saved to disk. Frames are analyzed in volatile RAM and immediately discarded. Only landmark coordinates are stored during training.</p>
+      </div>
+    </div>
+
+    <!-- Active Vocabulary Explorer -->
+    <div id="vocabSection">
+      <div class="vocab-section-title">
+        <span>Active ISL Vocabulary Index</span>
+        <span style="font-size: 0.95rem; font-weight: 600; color: var(--text-muted);">Trained gestures recognized by your model</span>
+      </div>
+
+      <div class="vocab-matrix-grid" id="vocabGrid">
+        <div class="vocab-card">
+          <div class="vocab-card-top"><span class="vocab-symbol">A</span><span class="vocab-type">Alphabet</span></div>
+          <p class="vocab-desc">Closed fist facing the camera with the thumb resting upright alongside the index knuckle.</p>
+        </div>
+        <div class="vocab-card">
+          <div class="vocab-card-top"><span class="vocab-symbol">B</span><span class="vocab-type">Alphabet</span></div>
+          <p class="vocab-desc">Flat open palm with all 4 fingers held straight up and thumb folded across the palm.</p>
+        </div>
+        <div class="vocab-card">
+          <div class="vocab-card-top"><span class="vocab-symbol">C</span><span class="vocab-type">Alphabet</span></div>
+          <p class="vocab-desc">Curved fingers and thumb forming a distinct semi-circular &ldquo;C&rdquo; shape in profile.</p>
+        </div>
+        <div class="vocab-card">
+          <div class="vocab-card-top"><span class="vocab-symbol">D</span><span class="vocab-type">Alphabet</span></div>
+          <p class="vocab-desc">Index finger extended vertically; middle, ring, and pinky curled inward touching the thumb tip.</p>
+        </div>
+        <div class="vocab-card">
+          <div class="vocab-card-top"><span class="vocab-symbol">E</span><span class="vocab-type">Alphabet</span></div>
+          <p class="vocab-desc">All fingertips curled tightly downward touching the thumb tip resting across the palm.</p>
+        </div>
+        <div class="vocab-card">
+          <div class="vocab-card-top"><span class="vocab-symbol">1</span><span class="vocab-type">Number</span></div>
+          <p class="vocab-desc">Single index finger pointed upwards with the remaining three fingers and thumb held closed.</p>
+        </div>
+        <div class="vocab-card">
+          <div class="vocab-card-top"><span class="vocab-symbol">2</span><span class="vocab-type">Number</span></div>
+          <p class="vocab-desc">Index and middle fingers extended upward forming a &ldquo;V&rdquo;; ring and pinky pinned by the thumb.</p>
+        </div>
+        <div class="vocab-card">
+          <div class="vocab-card-top"><span class="vocab-symbol">3</span><span class="vocab-type">Number</span></div>
+          <p class="vocab-desc">Thumb, index, and middle fingers extended outward while ring and pinky fingers are folded inward.</p>
+        </div>
+        <div class="vocab-card">
+          <div class="vocab-card-top"><span class="vocab-symbol">4</span><span class="vocab-type">Number</span></div>
+          <p class="vocab-desc">All four fingers extended upward and apart with the thumb tucked across the center of the palm.</p>
+        </div>
+        <div class="vocab-card">
+          <div class="vocab-card-top"><span class="vocab-symbol">5</span><span class="vocab-type">Number</span></div>
+          <p class="vocab-desc">Fully open hand with all 5 digits extended outward and spread comfortably apart.</p>
+        </div>
+        <div class="vocab-card">
+          <div class="vocab-card-top"><span class="vocab-symbol">Hello</span><span class="vocab-type">Word</span></div>
+          <p class="vocab-desc">Flat open hand near eye level with palm facing outward in a welcoming presentation.</p>
+        </div>
+        <div class="vocab-card">
+          <div class="vocab-card-top"><span class="vocab-symbol">Yes</span><span class="vocab-type">Word</span></div>
+          <p class="vocab-desc">Closed fist held upright, mirroring a nodding motion toward the camera.</p>
+        </div>
+        <div class="vocab-card">
+          <div class="vocab-card-top"><span class="vocab-symbol">No</span><span class="vocab-type">Word</span></div>
+          <p class="vocab-desc">Index and middle fingers snapping together to tap the thumb tip firmly.</p>
+        </div>
+        <div class="vocab-card">
+          <div class="vocab-card-top"><span class="vocab-symbol">Thank You</span><span class="vocab-type">Word</span></div>
+          <p class="vocab-desc">Flat open hand positioned forward, palm angled gently upward toward the viewer.</p>
+        </div>
+        <div class="vocab-card">
+          <div class="vocab-card-top"><span class="vocab-symbol">Help</span><span class="vocab-type">Word</span></div>
+          <p class="vocab-desc">Closed fist with upright thumb resting securely atop an open supporting palm plane.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Stream History Log -->
+    <div class="stream-log-container">
+      <div class="stream-log-header">Real-Time Stream Detections:</div>
+      <div class="stream-tags-list" id="history">
+        <span style="font-size: 0.95rem; color: var(--text-subtle);">No signs detected yet</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Global Footer -->
+  <footer class="global-footer">
+    <div>SignSense AI &mdash; Indian Sign Language Accessibility Studio</div>
+    <div>Processing 21 Spatial Landmarks Purely in Volatile RAM</div>
+  </footer>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+let busy = false, inited = false, videoOn = false, state = null;
+
+async function api(path, body) {
+  const opt = body === undefined ? {} :
+    {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)};
+  const r = await fetch(path, opt);
+  return r.json();
+}
+
+function toast(msg) {
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toast.h);
+  toast.h = setTimeout(() => t.classList.remove("show"), 4000);
+}
+
+async function poll() {
+  if (busy) return;
+  busy = true;
+  try { render(await api("/api/state")); } catch (e) { /* Server re-indexing */ }
+  busy = false;
+}
+setInterval(poll, 100);
+poll();
+
+function render(s) {
+  state = s;
+  const ready = s.model_ready;
+  $("setup").style.display = ready ? "none" : "block";
+  $("main").classList.toggle("hidden", !ready);
+  if (!ready) {
+    $("setupMsg").textContent = s.model_error || "";
+    return;
+  }
+
+  if (!inited) {
+    $("speak").checked = s.speak;
+    $("thr").value = Math.round(s.threshold * 100);
+    $("thrV").textContent = $("thr").value + "%";
+    inited = true;
+  }
+
+  // Tab Navigation Active States
+  $("tabLive").classList.toggle("active", s.mode === "live");
+  $("tabQuiz").classList.toggle("active", s.mode === "quiz");
+  $("livePanel").classList.toggle("hidden", s.mode !== "live");
+  $("quizPanel").classList.toggle("hidden", s.mode !== "quiz");
+
+  // Camera Button
+  $("btnCam").innerHTML = s.running 
+    ? '<span class="circle-icon-arrow">■</span> Stop camera' 
+    : '<span class="circle-icon-arrow">→</span> Start camera';
+  $("btnCam").classList.toggle("stop", s.running);
+
+  // Video Streaming
+  if (s.running && !videoOn) {
+    $("video").src = "/video_feed?t=" + Date.now();
+    videoOn = true;
+  }
+  if (!s.running && videoOn) {
+    $("video").removeAttribute("src");
+    videoOn = false;
+  }
+
+  $("video").style.display = s.running ? "block" : "none";
+  $("ph").style.display = s.running ? "none" : "flex";
+  $("pill").style.display = s.running ? "flex" : "none";
+  $("pill").classList.toggle("on", s.hand);
+  $("pillTxt").textContent = s.hand ? "Hand detected" : "No hand";
+
+  if (s.camera_error && !s.running) { toast(s.camera_error); }
+  if (s.speech_error && !render.warned) {
+    render.warned = true;
+    toast("Speech unavailable: " + s.speech_error);
+  }
+
+  const p = s.prediction;
+  const shown = p && p.accepted;
+  const stage = $("stage");
+  stage.className = "stage" + (s.running && s.hand ? " ok" : "");
+
+  // Live Mode Updates
+  $("liveSign").textContent = shown ? p.label : "–";
+  $("liveSign").classList.toggle("dim", !shown);
+  $("liveCat").classList.toggle("hidden", !shown);
+  if (shown) $("liveCat").textContent = p.category;
+
+  const conf = p ? p.confidence : 0;
+  // Circumference: 2 * PI * 50 ≈ 314.15
+  $("ringArc").style.strokeDashoffset = 314.15 * (1 - conf);
+  $("ringNum").textContent = p ? Math.round(conf * 100) + "%" : "–";
+  $("liveStatus").textContent = s.status ? s.status : "Camera is off";
+
+  // Stream History Log
+  const h = $("history");
+  h.innerHTML = "";
+  if (!s.history.length) {
+    const empty = document.createElement("span");
+    empty.style.color = "var(--text-subtle)";
+    empty.style.fontSize = "0.95rem";
+    empty.textContent = "No signs detected yet";
+    h.appendChild(empty);
+  } else {
+    s.history.slice().reverse().forEach(x => {
+      const item = document.createElement("span");
+      item.className = "stream-pill";
+      item.textContent = x;
+      h.appendChild(item);
+    });
+  }
+
+  // Quiz Mode Updates
+  const q = s.quiz;
+  if (q && s.mode === "quiz") {
+    $("qTarget").textContent = q.target;
+    const frac = q.phase === "attempt" && s.running ? q.time_left / q.timeout : 0;
+    $("qBar").style.width = (frac * 100) + "%";
+    $("qTime").textContent = s.running && q.phase === "attempt"
+      ? Math.ceil(q.time_left) + "s remaining"
+      : "Hold steady";
+
+    const b = $("qBanner");
+    const lr = q.last_result;
+    if (s.running && q.phase === "feedback" && lr) {
+      b.className = "quiz-feedback-pill " + (lr.correct ? "good" : "bad");
+      b.textContent = lr.correct
+        ? "✅ Correct!"
+        : (lr.predicted ? "❌ Looked like " + lr.predicted : "⏱ Time's up");
+      stage.className = "stage " + (lr.correct ? "good" : "bad");
+    } else {
+      b.className = "quiz-feedback-pill idle";
+      b.textContent = s.running ? "Show the target sign" : "Start camera to begin";
+    }
+
+    $("qScore").textContent = q.score;
+    $("qAtt").textContent = q.attempts;
+    $("qAcc").textContent = q.attempts ? Math.round(q.accuracy * 100) + "%" : "–";
+    $("qSees").textContent = p ? p.label + " (" + Math.round(p.confidence * 100) + "%)" : "–";
+  } else if (s.mode === "quiz") {
+    $("qBanner").textContent = "Quiz requires at least 2 signs.";
+  }
+}
+
+// Switching Live/Quiz hides the guide section to keep focus on camera
+$("tabLive").addEventListener("click", () => {
+  api("/api/mode", {mode: "live"});
+  $("guideSection").classList.add("hidden");
+});
+
+$("tabQuiz").addEventListener("click", () => {
+  api("/api/mode", {mode: "quiz"});
+  $("guideSection").classList.add("hidden");
+});
+
+// ISL Guide Tab opens the section & scrolls down
+$("tabGuide").addEventListener("click", () => {
+  const guide = $("guideSection");
+  guide.classList.remove("hidden");
+  guide.scrollIntoView({ behavior: "smooth" });
+});
+
+// Vocabulary Tab opens the section & scrolls to the vocabulary matrix
+$("tabVocab").addEventListener("click", () => {
+  const guide = $("guideSection");
+  guide.classList.remove("hidden");
+  $("vocabSection").scrollIntoView({ behavior: "smooth" });
+});
+
+// Close button inside the Knowledge Base
+$("btnCloseHub").addEventListener("click", () => {
+  $("guideSection").classList.add("hidden");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+$("btnCam").addEventListener("click", async () => {
+  if (state && state.running) {
+    await api("/api/stop", {});
+    return;
+  }
+  $("btnCam").innerHTML = '<span class="circle-icon-arrow">⏳</span> Starting...';
+  const r = await api("/api/start", {camera_index: +$("camIdx").value});
+  if (r.error) toast(r.error);
+});
+
+$("speak").addEventListener("change", e => api("/api/settings", {speak: e.target.checked}));
+
+$("thr").addEventListener("input", e => {
+  $("thrV").textContent = e.target.value + "%";
+  api("/api/settings", {threshold: e.target.value / 100});
+});
+
+$("btnReset").addEventListener("click", () => api("/api/quiz/reset", {}));
+
+$("btnReload").addEventListener("click", async () => {
+  const r = await api("/api/reload", {});
+  toast(r.error ? r.error : "Model reloaded successfully!");
+});
+</script>
+</body>
+</html>
