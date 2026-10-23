@@ -3,6 +3,7 @@
 Run with:  python flask_app.py     (opens http://127.0.0.1:5000)
 """
 import atexit
+import os
 import threading
 import time
 import webbrowser
@@ -93,6 +94,8 @@ def video_feed():
 
 
 if __name__ == "__main__":
-    print(f"SignSense AI running at {URL}  (press Ctrl+C to quit)")
+    port = int(os.environ.get("PORT", "5000"))
+    host = os.environ.get("HOST", "127.0.0.1")
+    print(f"SignSense AI running at http://{host}:{port}  (press Ctrl+C to quit)")
     threading.Timer(1.2, lambda: webbrowser.open(URL)).start()
-    app.run(host="127.0.0.1", port=5000, threaded=True, debug=False)
+    app.run(host=host, port=port, threaded=True, debug=False)

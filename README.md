@@ -112,6 +112,18 @@ small VPS. Use:
 python flask_app.py
 ```
 
+#### Render Web Service
+
+Create a **Web Service** from this repository with:
+
+- **Environment:** Python 3
+- **Build command:** `pip install -r requirements.txt`
+- **Start command:** `gunicorn --bind 0.0.0.0:$PORT flask_app:app`
+
+No custom environment variables are required. Render provides `PORT`
+automatically. Do not set a camera index, model path, or secret key in the
+environment; the included model files are loaded from the repository.
+
 For a Vercel deployment, the frontend must first be separated from the Flask
 runtime and recognition must be moved to a browser-compatible model (for example,
 TensorFlow.js) or to a separately hosted API. Do not add a `vercel.json` pointing

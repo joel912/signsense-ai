@@ -9,3 +9,4 @@ joblib==1.4.2
 streamlit==1.41.1
 pyttsx3==2.98
 flask==3.0.3
+gunicorn==23.0.0
